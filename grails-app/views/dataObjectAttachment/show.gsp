@@ -42,10 +42,7 @@
                                         <g:hiddenField name="bodyOnly" value="${true}"/>
                                         <g:hiddenField name="id" value="${dataObjectAttachmentInstance?.id}"/>
                                         <g:hiddenField name="associatedId" value="${d?.id}"/>
-                                        <g:hiddenField name="propertyName" value="dataObjects"/>
-                                        <g:hiddenField name="referencedClassName" value="org.openlab.main.DataObject"/>
-                                        <g:hiddenField name="thisClassName" value="DataObjectAttachment"/>
-                                        <g:submitToRemote action="removeOneToMany" update="[success:'body',failure:'body']" value="Remove" />
+                                        <g:submitToRemote action="removeAttachedObject" update="[success:'body',failure:'body']" value="Remove" />
                                     </li>
                                 </g:form>
                             </g:each>
@@ -56,11 +53,21 @@
                         </ul><br/><br/>
                             <g:form name="addOneToMany">
                                 <g:hiddenField name="bodyOnly" value="${true}"/>
-                                <g:hiddenField name="propertyName" value="dataObjects"  />
-                                <g:hiddenField name="referencedClassName" value="org.openlab.main.DataObject"/>
-                                <g:select from="${org.openlab.main.DataObject.list()}" name="selectAddTo" optionKey="id"/>
-                                <g:hiddenField name="id" value="${dataObjectAttachmentInstance?.id}"/>
-                                <g:submitToRemote action="addOneToMany" update="[success:'body',failure:'body']" value="Add" />
+                                <g:hiddenField name="id" value="${dataObjectAttachmentInstance.id}"/>
+                                <gui:autoComplete
+                                        minQueryLength="3"
+                                        queryDelay="0.5"
+                                        id="attachShowQ"
+                                        resultName="results"
+                                        labelField="label"
+                                        idField="id"
+                                        controller="dataObjectAttachment"
+                                        action="searchResultsAsJSON"
+                                />
+
+                                <div id="attachShowQselection" style="height:100px; scroll:overflow;"/>
+
+                                <g:submitToRemote action="addToAttachment" update="[success:'body',failure:'body']" value="Add" />
                             </g:form>
                     </span>
                     
@@ -130,6 +137,33 @@
 
         <script type="text/javascript">
             olfEvHandler.bodyContentChangedEvent.fire("${dataObjectAttachmentInstance?.toString()}", "${DataObjectAttachment}" ,"${dataObjectAttachmentInstance?.id}");
+
+            YAHOO.util.Event.onDOMReady(function() {
+                GRAILSUI.attachShowQ.itemSelectEvent.subscribe(function(oSelf , elItem , oData) {
+                    var divSurround = document.createElement('div');
+                    var divSurroundId = YAHOO.util.Dom.generateId(divSurround);
+                    var listEl = document.createElement('input');
+                    YAHOO.util.Dom.generateId(listEl, 'attachmentLink_');
+                    listEl.setAttribute('name', 'attachmentLink_'+elItem[2][1]);
+                    listEl.setAttribute('type', 'text');
+                    listEl.setAttribute('readonly', 'true');
+                    listEl.setAttribute('value', elItem[2][0]);
+
+                    divSurround.appendChild(listEl);
+
+                    var listRemove = document.createElement('a');
+                    listRemove.setAttribute('onClick', 'document.getElementById(\'selection\').removeChild(document.getElementById(\''+ divSurroundId +'\'));return false;');
+                    listRemove.setAttribute('href', '#');
+                    listRemove.appendChild(document.createTextNode('Remove'));
+                    divSurround.appendChild(listRemove);
+                    var divEl = document.getElementById("attachShowQselection");
+                    divEl.appendChild(divSurround);
+                });
+
+                GRAILSUI.attachShowQ.textboxFocusEvent.subscribe(function(oSelf, elItem, oData) {
+                    GRAILSUI.attachShowQ.getInputEl().value = '';
+                });
+            });
         </script>
 	</body>
 </html>

@@ -27,12 +27,11 @@
  *
  * ############################################################################
  */
-package openlabattachments
+package openlab.attachments
 
 import javax.servlet.http.HttpServletRequest
 import org.springframework.web.multipart.MultipartHttpServletRequest
 import org.springframework.web.multipart.MultipartFile
-import openlab.attachments.DataObjectAttachment
 
 class FileUploadHelperService {
 
@@ -46,9 +45,7 @@ class FileUploadHelperService {
         return request.inputStream
     }
 
-    DataObjectAttachment createDataObjectAttachmentInstance(def params) {
-        def doaInstance = new DataObjectAttachment();
-
+    DataObjectAttachment attachDataObjects(params, doaInstance) {
         //extract attachmentLink_* from params. it contains necessary information about which dataObject to attach to.
         for (String key in params.keySet()) {
             if (key.startsWith("attachmentLink_")) {
@@ -62,11 +59,7 @@ class FileUploadHelperService {
 
                 def splitArray = params[key].split(":")
 
-                //def domainName = splitArray[0]
-                def name = splitArray[1]
-
                 def domainInstance = grailsApplication.getArtefactByLogicalPropertyName("Domain", domainName.toString())?.getClazz()?.get(id)
-
                 if (domainInstance)
                     doaInstance.addToDataObjects(domainInstance)
             }

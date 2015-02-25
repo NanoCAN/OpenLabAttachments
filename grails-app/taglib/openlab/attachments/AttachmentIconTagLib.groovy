@@ -27,12 +27,15 @@
  *
  * ############################################################################
  */
-package openlabattachments
+package openlab.attachments
 
 class AttachmentIconTagLib {
 	
 	def attachmentIcon = { attr, body ->
-		out << "<img src='" + createLinkTo(dir: pluginContextPath+'/images', file: attr['type']+".png")+"'/>"
+        def fileType = attr['type']+".png"
+        def imageFile = new File(pluginContextPath + "/images/" + fileType)
+        if(!imageFile.exists()) fileType = "txt.png"
+		out << "<img src='" + createLinkTo(dir: pluginContextPath+'/images', file: fileType)+"'/>"
 	}
 	
 }

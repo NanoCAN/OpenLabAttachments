@@ -31,12 +31,9 @@ package openlab.attachments
 
 import grails.converters.JSON
 import org.apache.commons.collections.Predicate
+import org.openlab.main.DataObject
 import org.springframework.util.ClassUtils
-import uk.co.desirableobjects.ajaxuploader.AjaxUploaderService
 import uk.co.desirableobjects.ajaxuploader.exception.FileUploadException
-import javax.servlet.http.HttpServletRequest
-import org.springframework.web.multipart.MultipartHttpServletRequest
-import org.springframework.web.multipart.MultipartFile
 
 class DataObjectAttachmentController {
 
@@ -130,31 +127,53 @@ class DataObjectAttachmentController {
 
         //create one dataobjectattachment for each file that has been uploaded
         for(int currentFile = 0; currentFile <= params.int("filesUploaded"); currentFile++){
-            println params."fileName_${currentFile}"
 
-            //fill a dataobject attachment instance with linked data object
-            DataObjectAttachment doaInstance = fileUploadHelperService.createDataObjectAttachmentInstance(params)
+            DataObjectAttachment doaInstance = new DataObjectAttachment()
+
+            //fill a dataobject attachment instance with linked data objects
+            doaInstance = fileUploadHelperService.attachDataObjects(params, doaInstance)
 
             //rename the temporary uploaded file to a permanent file and link it to the doaInstance
             doaInstance = fileUploadHelperService.processTempFile(params."filePath_${currentFile}", params."fileName_${currentFile}", doaInstance)
             if(!doaInstance){
-                flash.message = "Failed to process uploaded file"
-                render template: "../addins/attachmentsAddin", layout: "body"
+                render template: "../addins/attachmentsAddin", layout: "body", model: [status: "Uploaded file could not be processed", slot: params.slot]
                 return
             }
 
             //save it
             else if (!doaInstance.save(flush: true)) {
-                flash.message = "Save failed"
-                render template: "../addins/attachmentsAddin", layout: "body"
+                render template: "../addins/attachmentsAddin", layout: "body", model: [status: "Save failed", slot: params.slot]
                 return
             }
         }
 
-        flash.message = "Save successful"
-        render template: "../addins/attachmentsAddin", layout: "body"
+        render template: "../addins/attachmentsAddin", layout: "body", model: [status: "Save successful", slot: params.slot]
     }
 
+    def addToAttachment = {
+        def dataObjectAttachmentInstance = DataObjectAttachment.get(params.id)
+        dataObjectAttachmentInstance = fileUploadHelperService.attachDataObjects(params, dataObjectAttachmentInstance)
+
+        if(!dataObjectAttachmentInstance.save(flush: true)){
+            flash.message = "Failed to add file to new DataObject(s)."
+        }
+        else{
+            flash.message = "DataObject(s) added successfully."
+        }
+        redirect action: "show", id: params.id
+    }
+
+    def removeAttachedObject = {
+        def dataObjectAttachmentInstance = DataObjectAttachment.get(params.id)
+        dataObjectAttachmentInstance.removeFromDataObjects(DataObject.get(params.associatedId))
+        if(!dataObjectAttachmentInstance.save(flush: true)){
+            flash.message = "Failed to remove DataObject from attachment."
+        }
+        else{
+            flash.message = "DataObject removed successfully."
+        }
+        render view: "show", model: [dataObjectAttachmentInstance: dataObjectAttachmentInstance]
+    }
     /**
      * In order to facilitate a possibility of adding dataObjects easily, an ajax auto-complete search field has been added
      * This method delivers the search results
