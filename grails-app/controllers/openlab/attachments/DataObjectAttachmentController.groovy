@@ -150,6 +150,36 @@ class DataObjectAttachmentController {
         render template: "../addins/attachmentsAddin", layout: "body", model: [status: "Save successful", slot: params.slot]
     }
 
+    def createInBody(){
+        println params
+        //create one dataobjectattachment for each file that has been uploaded
+        for(int currentFile = 0; currentFile <= params.int("filesUploadedBody"); currentFile++){
+
+            DataObjectAttachment doaInstance = new DataObjectAttachment()
+
+            //fill a dataobject attachment instance with linked data objects
+            def dataObjectInstance = DataObject.get(params.attachTo)
+            doaInstance.addToDataObjects(dataObjectInstance)
+            println dataObjectInstance.id
+            //rename the temporary uploaded file to a permanent file and link it to the doaInstance
+            doaInstance = fileUploadHelperService.processTempFile(params."filePath_${currentFile}", params."fileName_${currentFile}", doaInstance)
+            if(!doaInstance){
+                flash.message = "Processing uploaded file failed"
+            }
+
+            //save it
+            else if (!doaInstance.save(flush: true)) {
+                flash.message = "Saving attachment to database failed"
+            }
+
+            else{
+                flash.message = "Upload successful"
+            }
+        }
+
+        redirect(controller: params.controllerToShow, params: [bodyOnly: true], action: "show", id: params.attachTo)
+    }
+
     def addToAttachment = {
         def dataObjectAttachmentInstance = DataObjectAttachment.get(params.id)
         dataObjectAttachmentInstance = fileUploadHelperService.attachDataObjects(params, dataObjectAttachmentInstance)

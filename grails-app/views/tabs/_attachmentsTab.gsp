@@ -16,7 +16,7 @@
                         
                             <td>
                             <g:attachmentIcon type="${dataObjectAttachmentInstance.fileType}"/>
-                            <g:link action="download" id="${dataObjectAttachmentInstance.id}">${fieldValue(bean: dataObjectAttachmentInstance, field: "fileName")}</g:link></td>
+                            <g:link controller="dataObjectAttachment" action="download" id="${dataObjectAttachmentInstance.id}">${fieldValue(bean: dataObjectAttachmentInstance, field: "fileName")}</g:link></td>
 
                             	<td valign="top" class="value">
                             		<g:formatDate date="${dataObjectAttachmentInstance.fileUploadDate}" />
