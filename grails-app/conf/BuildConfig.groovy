@@ -61,7 +61,7 @@ grails.project.dependency.resolution = {
     }
 
     plugins{
-        compile ":ajax-uploader:1.1"
+        //compile ":ajax-uploader:1.1"
     }
 }
 grails.plugin.location.OpenLabBackend = "../OpenLabBackend"

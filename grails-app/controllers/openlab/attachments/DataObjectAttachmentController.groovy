@@ -151,16 +151,14 @@ class DataObjectAttachmentController {
     }
 
     def createInBody(){
-        println params
         //create one dataobjectattachment for each file that has been uploaded
         for(int currentFile = 0; currentFile <= params.int("filesUploadedBody"); currentFile++){
 
             DataObjectAttachment doaInstance = new DataObjectAttachment()
 
             //fill a dataobject attachment instance with linked data objects
-            def dataObjectInstance = DataObject.get(params.attachTo)
-            doaInstance.addToDataObjects(dataObjectInstance)
-            println dataObjectInstance.id
+            def dataObjectInstce = DataObject.get(params.attachTo)
+            doaInstance.addToDataObjects(dataObjectInstce)
             //rename the temporary uploaded file to a permanent file and link it to the doaInstance
             doaInstance = fileUploadHelperService.processTempFile(params."filePath_${currentFile}", params."fileName_${currentFile}", doaInstance)
             if(!doaInstance){
